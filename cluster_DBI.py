@@ -3,10 +3,20 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import davies_bouldin_score, silhouette_score, calinski_harabasz_score
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib as mpl
 
 # 0. 配置matplotlib支持中文显示
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
-plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+# 尝试使用不同的中文字体，避免字体缺失警告
+try:
+    # 尝试使用微软雅黑字体（Windows系统常见字体）
+    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'SimHei', 'Arial Unicode MS', 'sans-serif']
+    # 用来正常显示负号
+    plt.rcParams['axes.unicode_minus'] = False
+    # 测试中文显示
+    mpl.use('Agg')  # 使用非交互式后端，避免一些显示问题
+except:
+    # 如果设置失败，使用英文标签
+    print("警告: 中文字体设置失败，将使用英文标签")
 
 # 1. 数据准备
 # make_blobs函数生成用于聚类的多维高斯分布数据
@@ -63,29 +73,29 @@ for k in k_range:
     ch_scores.append(calinski)
     
     # 打印每个k值的评估结果
-    print(f"聚类数k={k}, DBI={dbi_score:.3f}, 轮廓系数={silhouette:.3f}, CH指数={calinski:.3f}")
+    print(f"Clusters k={k}, DBI={dbi_score:.3f}, Silhouette={silhouette:.3f}, CH={calinski:.3f}")
 
 # 4.2 绘制不同k值的DBI变化曲线
 plt.plot(k_range, dbi_scores, 'o-', color='blue')
-plt.xlabel('聚类数 (k)')
-plt.ylabel('Davies-Bouldin指数')
-plt.title('不同聚类数的Davies-Bouldin指数\n(值越小越好)')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Davies-Bouldin Index')
+plt.title('Davies-Bouldin Index for Different k\n(Lower is better)')
 plt.grid(True)
 
 # 4.3 绘制轮廓系数变化曲线（右上子图）
 plt.subplot(2, 2, 2)
 plt.plot(k_range, silhouette_scores, 'o-', color='green')
-plt.xlabel('聚类数 (k)')
-plt.ylabel('轮廓系数')
-plt.title('不同聚类数的轮廓系数\n(值越大越好)')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Silhouette Score')
+plt.title('Silhouette Score for Different k\n(Higher is better)')
 plt.grid(True)
 
 # 4.4 绘制Calinski-Harabasz指数变化曲线（左下子图）
 plt.subplot(2, 2, 3)
 plt.plot(k_range, ch_scores, 'o-', color='red')
-plt.xlabel('聚类数 (k)')
-plt.ylabel('Calinski-Harabasz指数')
-plt.title('不同聚类数的Calinski-Harabasz指数\n(值越大越好)')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Calinski-Harabasz Index')
+plt.title('Calinski-Harabasz Index for Different k\n(Higher is better)')
 plt.grid(True)
 
 # 5. 可视化最佳聚类结果 (k=3)（右下子图）
@@ -100,18 +110,18 @@ plt.scatter(X[:, 0], X[:, 1], c=labels, cmap='viridis', s=50, alpha=0.8)
 # 绘制聚类中心点（用红色X标记）
 plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], 
            c='red', marker='X', s=200)
-plt.title(f'K-Means聚类 (k=3)\nDBI={davies_bouldin_score(X, labels):.3f}')
+plt.title(f'K-Means Clustering (k=3)\nDBI={davies_bouldin_score(X, labels):.3f}')
 plt.grid(True)
 
 # 6. 调整布局并保存图像
 plt.tight_layout()
 plt.savefig('cluster_evaluation.png')
-plt.show()
+# 不使用plt.show()，避免非交互式后端的警告
 
 # 7. 输出DBI指标的详细解释
-print("\nDavies-Bouldin指数 (DBI) 解释:")
-print("- DBI衡量的是聚类的'紧密度'与'分离度'的比值")
-print("- 值越小越好，表示聚类内部紧密，聚类之间分离良好")
-print("- 它计算每对聚类中心之间的相似度，然后取所有聚类对的最大值的平均值")
-print("- 计算公式: DBI = (1/n) * Σ max_j≠i ((Si + Sj) / Mij)")
-print("  其中Si是聚类i内部的平均距离，Mij是聚类i和j中心之间的距离")
+print("\nDavies-Bouldin Index (DBI) Explanation:")
+print("- DBI measures the ratio of 'within-cluster scatter' to 'between-cluster separation'")
+print("- Lower values are better, indicating compact clusters that are well-separated")
+print("- It calculates the similarity between each pair of clusters and takes the average of the maximum values")
+print("- Formula: DBI = (1/n) * Σ max_j≠i ((Si + Sj) / Mij)")
+print("  where Si is the average distance within cluster i, Mij is the distance between cluster centers i and j")
