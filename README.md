@@ -125,3 +125,20 @@
 - [OPTICS算法](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.OPTICS.html)
 - [DBSCAN算法](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html)
 - [可达距离图解读](https://scikit-learn.org/stable/auto_examples/cluster/plot_optics.html)
+
+
+- 为什么OPTICS效果不如DBSCAN及如何改进
+   - 根据我们的实验结果，我可以分析为什么OPTICS在某些情况下效果不如DBSCAN，以及如何使OPTICS的效果更接近DBSCAN。
+   - 为什么OPTICS效果不如DBSCAN
+- 聚类提取方法的差异：
+   - 默认情况下，OPTICS使用基于xi的提取方法，它寻找可达距离图中的"陡峭下降"区域
+   - DBSCAN直接基于距离阈值eps进行聚类，这在某些数据集上更直观
+- 参数敏感性：
+   - OPTICS的xi参数对聚类结果影响很大。当xi=0.01时，我们得到了21个聚类和203个噪声点；当xi=0.1时，得到了14个聚类和300个噪声点
+   - 而DBSCAN只需要调整eps和min_samples两个参数，在月牙形数据集上表现稳定（2个聚类，0个噪声点）
+- 噪声点处理：
+   - 我们看到OPTICS倾向于将更多的点标记为噪声（使用xi方法时）
+   - DBSCAN在eps选择合适的情况下，能更好地包含所有点
+- 聚类数量：
+   - 使用xi方法的OPTICS倾向于产生过多的小聚类，而不是几个大的、有意义的聚类
+   - DBSCAN在月牙形数据集上正确识别出了2个聚类

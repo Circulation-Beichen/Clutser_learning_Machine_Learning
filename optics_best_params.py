@@ -4,18 +4,18 @@ from sklearn.cluster import OPTICS
 from sklearn.datasets import make_moons, make_blobs, make_circles
 from sklearn.preprocessing import StandardScaler
 
-# Generate synthetic datasets
+# 生成合成数据集
 def generate_datasets(n_samples=500, noise=0.05, random_state=42):
-    """Generate different types of datasets for clustering demonstration"""
-    # Half-moon shapes
+    """生成不同类型的数据集用于聚类演示"""
+    # 半月形
     moons_X, _ = make_moons(n_samples=n_samples, noise=noise, random_state=random_state)
     moons_X = StandardScaler().fit_transform(moons_X)
     
-    # Gaussian blobs
+    # 高斯分布
     blobs_X, _ = make_blobs(n_samples=n_samples, centers=3, random_state=random_state)
     blobs_X = StandardScaler().fit_transform(blobs_X)
     
-    # Concentric circles
+    # 同心圆
     circles_X, _ = make_circles(n_samples=n_samples, noise=noise, factor=0.5, random_state=random_state)
     circles_X = StandardScaler().fit_transform(circles_X)
     
@@ -25,37 +25,37 @@ def generate_datasets(n_samples=500, noise=0.05, random_state=42):
         'circles': circles_X
     }
 
-# Best parameters for different datasets
+# 不同数据集的最佳参数
 best_params = {
     'moons': {
-        'min_samples': 15,
-        'xi': 0.02,
+        'min_samples': 5,
+        'xi': 0.01,
         'min_cluster_size': 0.03,
-        'max_eps': 0.5
+        'max_eps': np.inf
     },
     'blobs': {
-        'min_samples': 10,
-        'xi': 0.05,
+        'min_samples': 5,
+        'xi': 0.01,
         'min_cluster_size': 0.05,
-        'max_eps': 1.0
+        'max_eps': np.inf
     },
     'circles': {
-        'min_samples': 10,
-        'xi': 0.02,
+        'min_samples': 5,
+        'xi': 0.01,
         'min_cluster_size': 0.02,
-        'max_eps': 0.5
+        'max_eps': np.inf
     }
 }
 
-# Run OPTICS with best parameters
+# 使用最佳参数运行OPTICS
 def run_optics_with_best_params(datasets):
-    """Run OPTICS with best parameters for each dataset"""
+    """使用每个数据集的最佳参数运行OPTICS"""
     results = {}
     
     for dataset_name, X in datasets.items():
         params = best_params[dataset_name]
         
-        # Create OPTICS model with best parameters
+        # 使用最佳参数创建OPTICS模型
         optics_model = OPTICS(
             min_samples=params['min_samples'],
             xi=params['xi'],
@@ -63,10 +63,10 @@ def run_optics_with_best_params(datasets):
             max_eps=params['max_eps']
         )
         
-        # Fit model
+        # 拟合模型
         optics_model.fit(X)
         
-        # Store results
+        # 存储结果
         results[dataset_name] = {
             'model': optics_model,
             'X': X,
@@ -78,9 +78,9 @@ def run_optics_with_best_params(datasets):
     
     return results
 
-# Visualize results
+# 可视化结果
 def visualize_results(results):
-    """Visualize OPTICS clustering results for all datasets"""
+    """可视化所有数据集的OPTICS聚类结果"""
     fig, axes = plt.subplots(len(results), 2, figsize=(15, 5 * len(results)))
     
     for i, (dataset_name, result) in enumerate(results.items()):
@@ -90,32 +90,32 @@ def visualize_results(results):
         ordering = result['ordering']
         params = result['params']
         
-        # Plot reachability
+        # 绘制可达距离图
         ax1 = axes[i, 0]
         ax1.plot(reachability[ordering], 'k-', alpha=0.7)
         ax1.set_ylabel('Reachability Distance')
         ax1.set_title(f'OPTICS Reachability Plot - {dataset_name.capitalize()}')
         
-        # Mark clusters in reachability plot
+        # 在可达距离图中标记聚类
         unique_labels = set(labels)
         colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
         
         for k, col in zip(unique_labels, colors):
-            if k == -1:  # Skip noise
+            if k == -1:  # 跳过噪声
                 continue
             
-            # Get cluster points in ordering
+            # 获取排序中的聚类点
             cluster_points = np.where(labels[ordering] == k)[0]
             
-            # Mark cluster regions
-            if len(cluster_points) > 0:  # Only if cluster has points
+            # 标记聚类区域
+            if len(cluster_points) > 0:  # 只有当聚类有点时
                 ax1.axvspan(min(cluster_points), max(cluster_points), 
                            alpha=0.2, color=col, label=f'Cluster {k}')
         
         ax1.legend()
         ax1.grid(True)
         
-        # Add parameter info
+        # 添加参数信息
         ax1.text(0.02, 0.95, 
                  f"Parameters:\nmin_samples={params['min_samples']}\n"
                  f"xi={params['xi']}\nmin_cluster_size={params['min_cluster_size']}\n"
@@ -123,18 +123,18 @@ def visualize_results(results):
                  transform=ax1.transAxes, 
                  bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.8))
         
-        # Plot clustering results
+        # 绘制聚类结果
         ax2 = axes[i, 1]
         
-        # Plot each cluster
+        # 绘制每个聚类
         for k, col in zip(unique_labels, colors):
-            if k == -1:  # Noise points in black
+            if k == -1:  # 噪声点用黑色表示
                 col = [0, 0, 0, 1]
             
-            # Create mask for current cluster
+            # 创建当前聚类的掩码
             class_mask = (labels == k)
             
-            # Plot cluster points
+            # 绘制聚类点
             ax2.scatter(X[class_mask, 0], X[class_mask, 1],
                        c=[tuple(col)], edgecolor='k', s=50, label=f'Cluster {k}')
         
@@ -144,7 +144,7 @@ def visualize_results(results):
         ax2.legend()
         ax2.grid(True)
         
-        # Add statistics
+        # 添加统计信息
         n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
         n_noise = list(labels).count(-1)
         ax2.text(0.02, 0.95, 
@@ -156,50 +156,50 @@ def visualize_results(results):
     
     plt.tight_layout()
     plt.savefig('optics_best_results.png')
-    print("Results saved to optics_best_results.png")
+    print("结果已保存到 optics_best_results.png")
 
-# Main function
+# 主函数
 def main():
-    # Generate datasets
+    # 生成数据集
     datasets = generate_datasets(n_samples=500, noise=0.05)
     
-    # Run OPTICS with best parameters
+    # 使用最佳参数运行OPTICS
     results = run_optics_with_best_params(datasets)
     
-    # Visualize results
+    # 可视化结果
     visualize_results(results)
     
-    # Print parameter tuning guide
-    print("\nOPTICS Parameter Tuning Guide:")
+    # 打印参数调整指南
+    print("\nOPTICS 参数调整指南:")
     print("1. min_samples:")
-    print("   - Controls the number of neighbors required for a point to be a core point")
-    print("   - Increase: Reduces noise sensitivity, but may ignore smaller clusters")
-    print("   - Decrease: Can detect smaller clusters, but may increase noise sensitivity")
-    print("   - Recommended range: 1%-5% of dataset size")
+    print("   - 控制点被视为核心点所需的邻居数")
+    print("   - 增大: 减少噪声敏感性，但可能忽略较小的聚类")
+    print("   - 减小: 可以检测较小的聚类，但可能增加噪声敏感性")
+    print("   - 建议范围: 数据集大小的1%-5%")
     
     print("\n2. xi:")
-    print("   - Controls the steepness threshold for cluster extraction")
-    print("   - Increase: Extracts fewer clusters")
-    print("   - Decrease: Extracts more clusters")
-    print("   - Recommended range: 0.01-0.1")
+    print("   - 控制聚类提取的陡度阈值")
+    print("   - 增大: 提取更少的聚类")
+    print("   - 减小: 提取更多的聚类")
+    print("   - 建议范围: 0.01-0.1")
     
     print("\n3. min_cluster_size:")
-    print("   - Controls the minimum sample ratio to be considered a cluster")
-    print("   - Increase: Ignores smaller clusters")
-    print("   - Decrease: Allows smaller clusters")
-    print("   - Recommended range: 0.01-0.05")
+    print("   - 控制被视为聚类的最小样本比例")
+    print("   - 增大: 忽略较小的聚类")
+    print("   - 减小: 允许较小的聚类")
+    print("   - 建议范围: 0.01-0.05")
     
     print("\n4. max_eps:")
-    print("   - Controls the maximum reachability distance")
-    print("   - Increase: May connect more points, reducing noise")
-    print("   - Decrease: May increase noise points, but clusters are more compact")
-    print("   - Recommendation: If unsure, set to infinity (np.inf)")
+    print("   - 控制最大可达距离")
+    print("   - 增大: 可能连接更多的点，减少噪声")
+    print("   - 减小: 可能增加噪声点数量，但聚类更紧凑")
+    print("   - 建议: 如果不确定，设置为无穷大(np.inf)")
     
-    print("\nReachability Plot Interpretation:")
-    print("- Valleys in the plot indicate potential clusters")
-    print("- Steep slopes indicate cluster boundaries")
-    print("- High plateaus typically represent noise points")
-    print("- When tuning parameters, look for clear valley structures")
+    print("\n可达距离图解读:")
+    print("- 图中的'山谷'表示潜在的聚类")
+    print("- 陡峭的'山坡'表示聚类边界")
+    print("- 高处的'平台'通常表示噪声点")
+    print("- 调整参数时，寻找清晰的'山谷'结构")
 
 if __name__ == "__main__":
     main() 
